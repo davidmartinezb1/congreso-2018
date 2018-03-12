@@ -1,0 +1,230 @@
+<?php 
+
+/**
+* Implements hook_menu().
+*/
+function elecciones_menu() {
+    /*Administrador*/
+    $items['admin/elecciones/config'] = array(
+        'title' => 'Elecciones',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('elecciones_admin'),
+        'access arguments' => array('administer_elecciones'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+
+    $items['resultados/elecciones/2018/senado/nacional'] = array(
+        'title' => 'Reportes',
+        'page callback' => 'senadoNac',
+        'page arguments' =>  array(1,2),
+        'access arguments' => array('access content'),
+    );
+
+    $items['resultados/elecciones/2018/camara/nacional'] = array(
+        'title' => 'Reportes',
+        'page callback' => 'camaraNac',
+        'page arguments' =>  array(1,2),
+        'access arguments' => array('access content'),
+    );
+
+    $items['resultados/elecciones/2018/senado/departamental'] = array(
+        'title' => 'Reportes',
+        'page callback' => 'senadoDepto',
+        'page arguments' =>  array(1,2),
+        'access arguments' => array('access content'),
+    );
+
+    $items['resultados/elecciones/2018/camara/departamental'] = array(
+        'title' => 'Reportes',
+        'page callback' => 'camaraDepto',
+        'page arguments' =>  array(1,2),
+        'access arguments' => array('access content'),
+    );
+
+    $items['resultados/elecciones/2018/senado/capitales'] = array(
+        'title' => 'Reportes',
+        'page callback' => 'senadoCapt',
+        'page arguments' =>  array(1,2),
+        'access arguments' => array('access content'),
+    );
+
+    $items['resultados/elecciones/2018/camara/capitales'] = array(
+        'title' => 'Reportes',
+        'page callback' => 'camaraCapt',
+        'page arguments' =>  array(1,2),
+        'access arguments' => array('access content'),
+    );
+
+    $items['resultados/elecciones/2018/cron'] = array(
+        'title' => 'Cron',
+        'page callback' => 'cron_elecciones',
+        'page arguments' =>  array(1,2),
+        'access arguments' => array('access content'),
+    );
+
+    $items['resultados/elecciones/2018/json/%'] = array(
+        'title' => 'Cron',
+        'page callback' => 'json_elecciones',
+        'page arguments' =>  array(4),
+        'access arguments' => array('access content'),
+    );
+
+    $items['resultados/elecciones/2018/view'] = array(
+        'title' => 'Cron',
+        'page callback' => 'view_elecciones',
+        'page arguments' =>  array(1,2),
+        'access arguments' => array('access content'),
+    );
+
+    $items['resultados/elecciones/2018/utf8'] = array(
+        'title' => 'Cron',
+        'page callback' => 'utf8_elecciones',
+        'page arguments' =>  array(1,2),
+        'access arguments' => array('access content'),
+    );
+
+    return $items;
+}
+
+function elecciones_permission() {
+  return array(
+    'administer_elecciones' => array(
+      'title' => t('Administrador'),
+      'description' => t('Permite ingresar los datos de conexión de la VPN de la registraduría nacional '),
+    ),
+    'administer_result_elecciones' => array(
+      'title' => t('Consumo datos electorales'),
+      'description' => t('Permite ver los datos electorales extraidos de la registraduría nacional '),
+    ),
+  );
+}
+
+function cron_elecciones(){
+    print theme('cron');
+}
+function json_elecciones($var){
+
+    $url_module = DRUPAL_ROOT .'/'.drupal_get_path("module","elecciones");
+    switch ($var) {
+        case 'camara':
+            print file_get_contents(DRUPAL_ROOT .'/'."sites/default/files/elecciones/json/camara_departamental.json");
+            break;
+        
+        case 'senado':
+            print file_get_contents(DRUPAL_ROOT .'/'."sites/default/files/elecciones/json/senado_nacional.json");
+            break;
+
+        case 'senado2':
+            print file_get_contents(DRUPAL_ROOT .'/'."sites/default/files/elecciones/json/senado_departamental.json");
+            break;
+        
+        case 'claveSenado':
+             print file_get_contents($url_module."/claves/json/candidatoSenado.json");
+            break;
+        
+        case 'claveCamara':
+            print file_get_contents($url_module."/claves/json/candidatoCamara.json");
+            break;
+    }
+    
+}
+
+function camaraNac(){
+    print theme('camaraNac');
+}
+
+function senadoNac(){
+    print theme('senadoNac');
+}
+
+function camaraDepto(){
+    print theme('camaraDepto');
+}
+
+function senadoDepto(){
+    print theme('senadoDepto');
+}
+function senadoCapt(){
+    print theme('senadoCap');
+}
+
+function camaraCapt(){
+    print theme('camaraCap');
+}
+
+function view_elecciones(){
+    return theme('view_elecciones');
+}
+
+function utf8_elecciones(){
+    $texto = isset($_POST['text']) ? $_POST['text'] :null;
+    if($texto){
+        print json_decode(utf8_decode($texto));
+    }else{
+        print "oks";
+    }
+}
+
+function elecciones_theme(){
+    return array(
+        'camaraNac' => array(
+            'template' => 'templates/nacionales/camara', 
+        ),
+        'senadoNac' => array(
+            'template' => 'templates/nacionales/senado', 
+        ),
+        'camaraDepto' => array(
+            'template' => 'templates/departamentales/camara', 
+        ),
+        'senadoDepto' => array(
+            'template' => 'templates/departamentales/senado', 
+        ),
+        'senadoCap' => array(
+            'template' => 'templates/capitales/senado', 
+        ),
+        'camaraCap' => array(
+            'template' => 'templates/capitales/camara', 
+        ),
+        'cron' => array(
+            'template' => 'templates/cron', 
+        ),
+        'view_elecciones' => array(
+            'template' => 'templates/view_elecciones', 
+        ),
+    );
+}
+
+function elecciones_admin() {
+    $form = array();
+    $form['username_regist'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Usuario'),
+        '#description' => t('Ingrese el nombre de usuario asgnado por la registraduría'),
+        '#default_value' => variable_get('username_regist', ""),
+        '#required' => true,
+        '#size' => 60,
+    );
+
+    $form['pass_regist'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Clave'),
+        '#description' => t('Ingrese la clave asignada por la registraduría'),
+        '#default_value' => variable_get('pass_regist', ""),
+        '#required' => true,
+        '#size' => 60,
+    );
+
+    $form['url_regist'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Url'),
+        '#description' => t('Ingrese la url para la autentificación en la VPN de la registraduría'),
+        '#default_value' => variable_get('url_regist', ""),
+        '#required' => true,
+        '#size' => 60,
+    );
+
+    return system_settings_form($form);
+}
+
+module_load_include('inc', 'elecciones', 'core');
+module_load_include('inc', 'elecciones', 'claves');
